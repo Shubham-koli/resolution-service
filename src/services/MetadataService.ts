@@ -242,7 +242,11 @@ export class MetadataService {
       withOverlay ? domain.name : undefined,
     );
     if (!cachedPfpNFT) {
-      await cacheSocialPictureInCDN(socialPicture, domain, resolution);
+      await cacheSocialPictureInCDN({
+        socialPicture,
+        domain,
+        resolution,
+      });
       // This is not optimal, should return image instead of 2nd call
       // TODO: improve PFP NFT fetching after caching in CDN
       const trulyCachedPFPNFT = await getNftPfpImageFromCDN(

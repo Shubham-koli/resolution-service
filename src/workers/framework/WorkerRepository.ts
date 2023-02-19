@@ -136,11 +136,11 @@ export class WorkerRepository implements IWorkerRepository {
 
         if (resolution.resolution?.['social.picture.value']) {
           try {
-            await cacheSocialPictureInCDN(
-              resolution.resolution?.['social.picture.value'],
+            await cacheSocialPictureInCDN({
+              socialPicture: resolution.resolution?.['social.picture.value'],
               domain,
-              dbResolution,
-            );
+              resolution: dbResolution,
+            });
           } catch (error) {
             this.logger.error(
               `Failed to cache PFP for ${resolution.node}: ${error}`,

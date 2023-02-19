@@ -149,20 +149,28 @@ export const getNFTFilenameInCDN = (
   return `${nftPfpFolder}/${chainId}_${nftStandard}:${contractAddress}_${tokenId}${overlayPostfix}.svg`;
 };
 
-export const cacheSocialPictureInCDN = async (
-  socialPic: string,
-  domain: Domain,
-  resolution: DomainsResolution,
-): Promise<void> => {
-  if (!isNotEmpty(socialPic)) {
+export const cacheSocialPictureInCDN = async (options: {
+  socialPicture: string;
+  domain: Domain;
+  resolution: DomainsResolution;
+  shouldOverrideOverlayImage?: boolean;
+}): Promise<void> => {
+  const {
+    socialPicture,
+    domain,
+    resolution,
+    shouldOverrideOverlayImage = false,
+  } = options;
+
+  if (!isNotEmpty(socialPicture)) {
     logger.warn(
       'trying to cache NFT picture with empty token URI, domain:',
       domain?.name,
     );
     return;
   }
-  const fileName = getNFTFilenameInCDN(socialPic);
-  const fileNameWithOverlay = getNFTFilenameInCDN(socialPic, domain.name);
+  const fileName = getNFTFilenameInCDN(socialPicture);
+  const fileNameWithOverlay = getNFTFilenameInCDN(socialPicture, domain.name);
   const bucketName = env.CLOUD_STORAGE.CLIENT_ASSETS.BUCKET_ID;
   const bucket = storage.bucket(bucketName);
 
@@ -170,7 +178,11 @@ export const cacheSocialPictureInCDN = async (
   const [fileWithOverlayExists] = await bucket
     .file(fileNameWithOverlay)
     .exists();
-  if (!fileExists || !fileWithOverlayExists) {
+
+  const shouldWriteOverlayImage =
+    shouldOverrideOverlayImage || !fileWithOverlayExists;
+
+  if (!fileExists || shouldWriteOverlayImage) {
     // TODO: Refactor this code
     // (1) Why are there function declarations inside of function declarations?
     // (2) In the meantime, just instantiate a service as a stop gap
@@ -196,7 +208,7 @@ export const cacheSocialPictureInCDN = async (
         files.push({ fname: fileName, data: imageDataSVG });
       }
 
-      if (!fileWithOverlayExists) {
+      if (!shouldWriteOverlayImage) {
         const withOverlayImageData = createSocialPictureImage(
           domain,
           imageData,
@@ -216,7 +228,7 @@ export const cacheSocialPictureInCDN = async (
       logger.error(
         `Failed to generate image data for the domain: ${JSON.stringify(
           domain,
-        )}, token URI: ${socialPic}`,
+        )}, token URI: ${socialPicture}`,
       );
     }
   }
