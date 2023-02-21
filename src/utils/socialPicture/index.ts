@@ -209,7 +209,7 @@ export const cacheSocialPictureInCDN = async (options: {
         files.push({ fname: fileName, data: imageDataSVG });
       }
 
-      if (!shouldWriteOverlayImage) {
+      if (shouldWriteOverlayImage) {
         const withOverlayImageData = createSocialPictureImage(
           domain,
           imageData,

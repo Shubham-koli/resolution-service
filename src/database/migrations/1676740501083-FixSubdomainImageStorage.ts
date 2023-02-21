@@ -53,9 +53,9 @@ const fixImageOverlayInCloudStorage = async (subdomains: Array<Domain>) => {
 
       logger.info(`${LOG_PREFIX} - fixed image of subdomain ${subdomain.name}`);
     } catch (error) {
-      logger.error(`${LOG_PREFIX} - failed to process ${subdomain.name}`, {
-        error,
-      });
+      logger.error(
+        `${LOG_PREFIX} - failed to process ${subdomain.name} ${error}`,
+      );
     }
   }
 };
