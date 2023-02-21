@@ -11,6 +11,7 @@ import { Storage } from '@google-cloud/storage';
 import { logger } from '../../logger';
 import { MetadataService } from '../../services/MetadataService';
 import { PROFILE_FETCH_TIMEOUT_MS } from '../common';
+import * as DomainUtils from '../../utils/domain';
 
 export type SocialPictureOptions = {
   chainId: string;
@@ -112,7 +113,7 @@ export const createSocialPictureImage = (
   raw = false,
 ): string => {
   const fontSize = getFontSize(
-    domain.name.split('.')[0].length > 45
+    DomainUtils.splitDomain(domain.name).label.length > 45
       ? domain.name.substring(0, 45)
       : domain.name,
   );

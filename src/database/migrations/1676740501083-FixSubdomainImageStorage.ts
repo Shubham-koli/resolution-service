@@ -13,42 +13,50 @@ const fixImageOverlayInCloudStorage = async (subdomains: Array<Domain>) => {
     const { label } = splitDomain(subdomain.name);
     const resolution = getDomainResolution(subdomain);
 
-    const socialPictureValue = resolution.resolution['social.picture.value'];
+    try {
+      const socialPictureValue = resolution.resolution['social.picture.value'];
 
-    if (!socialPictureValue) {
-      logger.info(
-        `${LOG_PREFIX} - skip for no social picture ${subdomain.name}`,
+      if (!socialPictureValue) {
+        logger.info(
+          `${LOG_PREFIX} - skip for no social picture ${subdomain.name}`,
+        );
+        continue;
+      }
+
+      const storedImage = await SocialPictureUtils.getNftPfpImageFromCDN(
+        socialPictureValue,
+        subdomain.name,
       );
-      continue;
+
+      if (!storedImage) {
+        // skip if image is not found
+        logger.info(
+          `${LOG_PREFIX} - skip for no image stored ${subdomain.name}`,
+        );
+        continue;
+      }
+
+      if (storedImage.includes(label)) {
+        // skip if image is already correct
+        logger.info(
+          `${LOG_PREFIX} - skip for already correct picture ${subdomain.name}`,
+        );
+        continue;
+      }
+
+      await SocialPictureUtils.cacheSocialPictureInCDN({
+        socialPicture: socialPictureValue,
+        domain: subdomain,
+        resolution,
+        shouldOverrideOverlayImage: true,
+      });
+
+      logger.info(`${LOG_PREFIX} - fixed image of subdomain ${subdomain.name}`);
+    } catch (error) {
+      logger.error(`${LOG_PREFIX} - failed to process ${subdomain.name}`, {
+        error,
+      });
     }
-
-    const storedImage = await SocialPictureUtils.getNftPfpImageFromCDN(
-      socialPictureValue,
-      subdomain.name,
-    );
-
-    if (!storedImage) {
-      // skip if image is not found
-      logger.info(`${LOG_PREFIX} - skip for no image stored ${subdomain.name}`);
-      continue;
-    }
-
-    if (storedImage.includes(label)) {
-      // skip if image is already correct
-      logger.info(
-        `${LOG_PREFIX} - skip for already correct picture ${subdomain.name}`,
-      );
-      continue;
-    }
-
-    await SocialPictureUtils.cacheSocialPictureInCDN({
-      socialPicture: socialPictureValue,
-      domain: subdomain,
-      resolution,
-      shouldOverrideOverlayImage: true,
-    });
-
-    logger.info(`${LOG_PREFIX} - fixed image of subdomain ${subdomain.name}`);
   }
 };
 
@@ -101,11 +109,11 @@ export class FixSubdomainImageStorage1676740501083
         )
         .leftJoinAndSelect('domain.resolutions', 'resolution');
 
-      const queryIltoraror = withLimitIlterator(queryBuilder, {
+      const queryIterator = withLimitIlterator(queryBuilder, {
         limit: 10,
       });
 
-      for await (const subdomains of queryIltoraror) {
+      for await (const subdomains of queryIterator) {
         await fixImageOverlayInCloudStorage(subdomains);
       }
     } catch (e) {
