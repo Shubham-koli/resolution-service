@@ -30,7 +30,7 @@ variety of platforms and in the cloud.
 ## Resolution service endpoints
 
 - Production Mainnet: http://resolve.unstoppabledomains.com/api-docs/
-- Staging Testnet (Ethereum Goerly, Polygon Mumbai):
+- Staging Testnet (Ethereum Goerli, Polygon Mumbai):
   https://resolve.staging.unstoppabledomains.com/api-docs/
 
 ## Installation
